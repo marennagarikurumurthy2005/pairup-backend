@@ -1,0 +1,228 @@
+PairUp API Testing Guide
+A. User Authentication
+1. Register
+
+Method: POST
+
+URL: http://127.0.0.1:8000/auth/register/
+
+Body (JSON):
+
+{
+    "username": "testuser",
+    "email": "test@example.com",
+    "mobile": "9999999999",
+    "password": "Test@1234",
+    "re_password": "Test@1234",
+    "gender": "male",
+    "nation": "India",
+    "state": "Telangana",
+    "city": "Hyderabad",
+    "district": "SomeDist",
+    "mandal": "SomeMandal",
+    "village": "SomeVillage",
+    "pincode": "500001"
+}
+
+
+Expected Response:
+
+{"message": "User registered successfully"}
+
+2. Login
+
+Method: POST
+
+URL: http://127.0.0.1:8000/auth/login/
+
+Body (JSON):
+
+{
+    "username": "testuser",
+    "password": "Test@1234"
+}
+
+
+Expected Response:
+
+{
+  "access": "<JWT_TOKEN>",
+  "refresh": "<JWT_REFRESH_TOKEN>",
+  "user": {
+      "id": 1,
+      "username": "testuser",
+      "email": "test@example.com",
+      "mobile": "9999999999"
+  }
+}
+
+
+✅ Save this JWT token — send it in Authorization header for protected routes:
+
+Authorization: Bearer <JWT_TOKEN>
+
+3. Profile
+
+Method: GET
+
+URL: http://127.0.0.1:8000/auth/profile/
+
+Headers:
+
+Authorization: Bearer <JWT_TOKEN>
+
+
+Expected Response: User profile JSON.
+
+4. List All Users
+
+Method: GET
+
+URL: http://127.0.0.1:8000/auth/allusers/?gender=female&state=Telangana
+
+Headers:
+
+Authorization: Bearer <JWT_TOKEN>
+
+
+Expected Response: List of users matching filters:
+
+[
+    {
+        "id": 2,
+        "username": "jane",
+        "email": "jane@example.com",
+        "mobile": "8888888888",
+        "gender": "female",
+        "nation": "India",
+        "state": "Telangana",
+        "city": "Hyderabad",
+        "district": "SomeDist",
+        "mandal": "SomeMandal",
+        "village": "SomeVillage",
+        "pincode": "500002"
+    }
+]
+
+B. Filters
+1. Saved Filter
+
+Method: GET
+
+URL: http://127.0.0.1:8000/filters/savedfilter/
+
+Headers: Authorization: Bearer <JWT_TOKEN>
+
+Expected Response: JSON of saved filters.
+
+2. Set Filters
+
+Method: GET
+
+URL: http://127.0.0.1:8000/filters/setfilters/?gender=female&city=Hyderabad
+
+Headers: Authorization: Bearer <JWT_TOKEN>
+
+Expected Response: Users list matching filters.
+
+C. Connections
+1. Send Connection Request
+
+Method: POST
+
+URL: http://127.0.0.1:8000/users/connection/send/2/
+
+Headers: Authorization: Bearer <JWT_TOKEN>
+
+Expected Response:
+
+{"message": "Connection request sent"}
+
+2. Accept Connection Request
+
+Method: POST
+
+URL: http://127.0.0.1:8000/users/connection/accept/1/
+
+Headers: Authorization: Bearer <JWT_TOKEN>
+
+Expected Response:
+
+{"message": "Connection request accepted"}
+
+D. Messaging
+1. Send Message
+
+Method: POST
+
+URL: http://127.0.0.1:8000/users/messages/send/
+
+Headers: Authorization: Bearer <JWT_TOKEN>
+
+Body (JSON):
+
+{
+    "receiver": 2,
+    "message": "Hello, how are you?",
+    "expiry_hours": 2
+}
+
+
+Expected Response:
+
+{"message": "Message sent successfully"}
+
+2. Message List
+
+Method: GET
+
+URL: http://127.0.0.1:8000/users/messages/2/
+
+Headers: Authorization: Bearer <JWT_TOKEN>
+
+Expected Response: Array of messages with read/unread status.
+
+E. Calls
+1. Send Call Request
+
+Method: POST
+
+URL: http://127.0.0.1:8000/users/call/send/
+
+Headers: Authorization: Bearer <JWT_TOKEN>
+
+Body (JSON):
+
+{
+    "to_user": 2,
+    "call_type": "video"
+}
+
+
+Expected Response:
+
+{"message": "Call request sent"}
+
+2. Accept Call Request
+
+Method: POST
+
+URL: http://127.0.0.1:8000/users/call/accept/1/
+
+Headers: Authorization: Bearer <JWT_TOKEN>
+
+Expected Response:
+
+{"message": "Call request accepted"}
+
+✅ Notes
+
+Use JWT token from login for all protected endpoints.
+
+Filters follow priority: gender > nation > state > city > district > mandal > village.
+
+Messages support expiry_hours (1–24 hrs).
+
+Calls require connection first, then acceptance.
+
+Socket.IO events handle real-time messages, typing, online status, calls.

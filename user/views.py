@@ -4,7 +4,12 @@ from rest_framework import status, permissions
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import RegisterSerializer, LoginSerializer, PublicUserSerializer
+from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.filters import SearchFilter
+from django.db.models import Q
 from .models import User
+from .serializers import PublicUserSerializer
 
 
 #Registration View
@@ -47,3 +52,43 @@ def profile(request):
     user = request.user
     serializer = PublicUserSerializer(user)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def user_list_view(request):
+    user = request.user
+    qs = User.objects.exclude(id=user.id)  # exclude self
+
+    # Extract filters from query params
+    params = request.query_params
+    gender   = params.get("gender")
+    nation   = params.get("nation")
+    state    = params.get("state")
+    city     = params.get("city")
+    district = params.get("district")
+    mandal   = params.get("mandal")
+    village  = params.get("village")
+    pincode  = params.get("pincode")
+
+    # Apply filters (priority: gender > nation > state > city > district > mandal > village > pincode)
+    if gender:
+        qs = qs.filter(gender=gender)
+    if nation:
+        qs = qs.filter(nation=nation)
+    if state:
+        qs = qs.filter(state=state)
+    if city:
+        qs = qs.filter(city=city)
+    if district:
+        qs = qs.filter(district=district)
+    if mandal:
+        qs = qs.filter(mandal=mandal)
+    if village:
+        qs = qs.filter(village=village)
+    if pincode:
+        qs = qs.filter(pincode=pincode)
+
+    serializer = PublicUserSerializer(qs, many=True)
+    return Response(serializer.data)
