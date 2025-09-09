@@ -1,5 +1,5 @@
 from django.db import models
-from users.models import User
+from user.models import User
 
 class ConnectionRequest(models.Model):
     from_user = models.ForeignKey(User, related_name="sent_requests", on_delete=models.CASCADE)
